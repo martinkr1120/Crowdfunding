@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<http auto-config="true">
+	  	<intercept-url pattern="/" access="hasAnyRole('ROLE_ANONYMOUS','ROLE_Patron','ROLE_Creator')" />
+	  	<intercept-url pattern="/explore/**" access="hasAnyRole('ROLE_ANONYMOUS','ROLE_Patron','ROLE_Creator')" />
+		<intercept-url pattern="/resources/**" access="permitAll" />
+		<intercept-url pattern="/profile**" access="hasAnyRole('ROLE_Patron','ROLE_Creator')" />
+	    <intercept-url pattern="/photo**" access="hasAnyRole('ROLE_Patron','ROLE_Creator')" />
+	    <intercept-url pattern="/post**" access="hasRole('ROLE_Creator')" />
+		<intercept-url pattern="/new" access="isAuthenticated()" />
+		<intercept-url pattern="/patron**" access="hasRole('ROLE_Patron')" />
+		<intercept-url pattern="/creator**" access="hasRole('ROLE_Creator')" />
+		<intercept-url pattern="/donate/**" access="hasRole('ROLE_Patron')" />
+		<intercept-url pattern="/donationSuccess" access="hasAnyRole('ROLE_Patron')" />
+		<intercept-url pattern="/send-mail**" access="hasAnyRole('ROLE_Creator')" />
+		<intercept-url pattern="/editHome" access="hasAnyRole('ROLE_Admin')" />
+		
+		<access-denied-handler error-page="/403" />
+
+
+
+
+
+		<form-login login-page="/"
+			authentication-success-handler-ref="myUserSueccessHandler"
+			authentication-failure-url="/Access_Denied" login-processing-url="/j_spring_security_check"
+			username-parameter="username" password-parameter="password"
+			default-target-url="/" />
+
+		<!-- <form-login login-page="/" authentication-success-handler-ref="myUserSueccessHandler" 
+			authentication-failure-url="/Access_Denied" default-target-url="/" username-parameter="username" 
+			password-parameter="password" /> -->
+		<logout logout-success-url="/"  logout-url="/j_spring_security_logout"/>
+		<!-- <logout /> -->
+		<csrf disabled="true" />
+	</http>
+
+	<beans:bean id="myUserDetailsService"
+		class="neu.edu.project.service.MyUserDetailsService" />
+	<beans:bean id="myUserSueccessHandler"
+		class="neu.edu.project.controller.UserSuccessHandler" />
+
+	<authentication-manager alias="authenticationManager">
+		<!-- in-memory authentication provider, only useful for prototype applications 
+			that don't require complex security infrastructure -->
+		<!-- <authentication-provider> <user-service> <user name="user" password="password" 
+			authorities="" /> </user-service> </authentication-provider> <authentication-provider 
+			user-service-ref="myUserDetailsService" /> -->
+
+		<authentication-provider>
+			<jdbc-user-service data-source-ref="dataSource"
+				users-by-username-query="select UserName,Password,Enabled from USER where UserName=?"
+				authorities-by-username-query="select UserName,Role from USER where UserName=?" />
+			 <!--   <user-service>
+                <user name="admin" password="admin" authorities="ROLE_Admin" />
+            </user-service>  -->
+		</authentication-provider>
+	</authentication-manager>
+</beans:beans>
